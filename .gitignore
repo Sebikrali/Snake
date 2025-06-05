@@ -1,0 +1,13 @@
+
+# Project specific
+bin/
+build/
+lib/
+
+# CLion
+**/.idea
+
+# Clangd
+**/.cache
+compile_commands.json
+
