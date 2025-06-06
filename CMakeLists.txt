@@ -18,8 +18,8 @@ target_include_directories(${PROJECT_NAME}
 # Define the link libraries
 target_link_directories(${PROJECT_NAME} PRIVATE "lib")
 set(LINK_LIBRARIES 
-    # debug glfw3d optimized glfw3
-    # debug glmd optimized glm
+    glfw3 
+    m
 )
 target_link_libraries(${PROJECT_NAME} PRIVATE ${LINK_LIBRARIES})
 
