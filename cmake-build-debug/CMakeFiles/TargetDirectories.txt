@@ -1,0 +1,7 @@
+/home/sxk/Projects/Snake/cmake-build-debug/CMakeFiles/snake.dir
+/home/sxk/Projects/Snake/cmake-build-debug/CMakeFiles/edit_cache.dir
+/home/sxk/Projects/Snake/cmake-build-debug/CMakeFiles/rebuild_cache.dir
+/home/sxk/Projects/Snake/cmake-build-debug/CMakeFiles/list_install_components.dir
+/home/sxk/Projects/Snake/cmake-build-debug/CMakeFiles/install.dir
+/home/sxk/Projects/Snake/cmake-build-debug/CMakeFiles/install/local.dir
+/home/sxk/Projects/Snake/cmake-build-debug/CMakeFiles/install/strip.dir
