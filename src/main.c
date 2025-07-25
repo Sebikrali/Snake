@@ -2,21 +2,31 @@
 
 #include "pch.h"
 
-#include "model.h"
+#include "game.h"
 #include "shader.h"
 #include "render.h"
 #include "utils.h"
 
 static const char* NAME = "Snake";
-static const int WIDTH = 1280;
-static const int HEIGHT = 720;
+static const int WIDTH = 1000;
+static const int HEIGHT = 1000;
 
 static bool g_firstMouse = true;
 static double xPos = 0.0;
 static double yPos = 0.0;
 
+static bool g_key_w_pressed = false;
+static bool g_key_a_pressed = false;
+static bool g_key_s_pressed = false;
+static bool g_key_d_pressed = false;
+
+static bool g_key_w_pressed_first = false;
+static bool g_key_a_pressed_first = false;
+static bool g_key_s_pressed_first = false;
+static bool g_key_d_pressed_first = false;
+
 static bool g_debugCamera = false;
-static debug_render_t debug_render;
+static DebugRender debug_render;
 
 void FormatDebugOutput(char *out, size_t outSize, GLenum source, GLenum type, GLuint id, GLenum severity, const char* msg) {
     const char *sourceString;
@@ -70,6 +80,19 @@ void error_callback(int error, const char* description) {
 static void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods) {
     if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
         glfwSetWindowShouldClose(window, GLFW_TRUE);
+    }
+
+    if (key == GLFW_KEY_W && action == GLFW_RELEASE) {
+        g_key_w_pressed = false;
+    } 
+    if (key == GLFW_KEY_A && action == GLFW_RELEASE) {
+        g_key_a_pressed = false;
+    } 
+    if (key == GLFW_KEY_S && action == GLFW_RELEASE) {
+        g_key_s_pressed = false;
+    } 
+    if (key == GLFW_KEY_D && action == GLFW_RELEASE) {
+        g_key_d_pressed = false;
     } 
 
     if (action != GLFW_PRESS) return; 
@@ -81,6 +104,22 @@ static void key_callback(GLFWwindow* window, int key, int scancode, int action, 
             } else {
                 glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
             }
+            break;
+        case GLFW_KEY_W:
+            g_key_w_pressed = true;
+            g_key_w_pressed_first = true;
+            break;
+        case GLFW_KEY_A:
+            g_key_a_pressed = true;
+            g_key_a_pressed_first = true;
+            break;
+        case GLFW_KEY_S:
+            g_key_s_pressed = true;
+            g_key_s_pressed_first = true;
+            break;
+        case GLFW_KEY_D:
+            g_key_d_pressed = true;
+            g_key_d_pressed_first = true;
             break;
     }
 }
@@ -95,12 +134,48 @@ static void cursor_position_callback(GLFWwindow* window, double xpos, double ypo
         return;
     }
     vec2 delta = { xpos - xPos, ypos - yPos };
-    change_view_debug_render(&debug_render, delta);
+    debug_render_change_view(&debug_render, delta);
     xPos = xpos;
     yPos = ypos;
 }
 
-void handle_movement(GLFWwindow* window, debug_render_t* render, float dt) {
+void handle_movement(GLFWwindow* window, Game* game) {
+    ivec2 direction = {0};
+    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
+        if (g_key_w_pressed_first) {
+            g_key_w_pressed_first = false;
+            ivec2 up = { 0, 1 }; 
+            glm_ivec2_add(direction, up, direction);
+        }
+    }
+    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
+        if (g_key_s_pressed_first) {
+            g_key_s_pressed_first = false;
+            ivec2 down = { 0, -1 }; 
+            glm_ivec2_add(direction, down, direction);
+        }
+    }
+    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
+        if (g_key_a_pressed_first) {
+            g_key_a_pressed_first = false;
+            ivec2 left = { -1, 0 }; 
+            glm_ivec2_add(direction, left, direction);
+        }
+    }
+    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
+        if (g_key_d_pressed_first) {
+            g_key_d_pressed_first = false;
+            ivec2 right = { 1, 0 }; 
+            glm_ivec2_add(direction, right, direction);
+        }
+    }
+
+    if (direction[0] != 0 || direction[1] != 0) {
+        game_move_snake(game, direction);
+    }
+}
+
+void handle_movement_debug_render(GLFWwindow* window, DebugRender* render, float dt) {
     vec3 direction = {0.0f};
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
         vec3 forward = { 0.0f, 0.0f, -1.0f }; 
@@ -120,10 +195,9 @@ void handle_movement(GLFWwindow* window, debug_render_t* render, float dt) {
     }
 
     if (glm_vec3_norm2(direction) != 0) {
-        move_debug_render(render, direction, dt);
+        debug_render_move(render, direction, dt);
     }
 }
-
 
 int main() {
     if (!glfwInit()) {
@@ -155,14 +229,15 @@ int main() {
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     glDisable(GL_CULL_FACE);
 
-    render_t render;
-    setup_render(&render, WIDTH, HEIGHT);
+    Render render;
+    render_create(&render, WIDTH, HEIGHT);
 
-    setup_debug_render(&debug_render, WIDTH, HEIGHT);
+    debug_render_create(&debug_render, WIDTH, HEIGHT);
 
-    model_t model = create_model();
+    Game game;
+    game_create(&game, WIDTH, HEIGHT);
 
-    shader_t shader = create_shader("assets/shader/snake.vert", "assets/shader/snake.frag");
+    Shader shader = shader_create("assets/shader/snake.vert", "assets/shader/snake.frag");
     if (shader.program == 0) {
         return -1;
     }
@@ -171,27 +246,29 @@ int main() {
 
     float t = (float) glfwGetTime();
     float dt = 0.0f;
-    while (!glfwWindowShouldClose(window)) {
+    while (!glfwWindowShouldClose(window) && !game.finished) {
         glClear(GL_COLOR_BUFFER_BIT);
+        glfwPollEvents();
 
         dt = t;
         t = (float) glfwGetTime();
         dt = t - dt;
 
-        handle_movement(window, &debug_render, dt);
-        glfwPollEvents();
+        // handle_movement_debug_render(window, &debug_render, dt);
+        handle_movement(window, &game);
 
         if (!g_debugCamera) {
-            use_shader(shader, render.viewProj);
+            shader_use(shader, render.viewProj);
         } else {
-            use_shader(shader, debug_render.viewProj);
+            shader_use(shader, debug_render.viewProj);
         }
-        draw_model(model);
+
+        game_draw(&game, shader);
 
         glfwSwapBuffers(window);
     }
 
-    destroy_model(model);
+    game_destroy(&game);
 
     glfwDestroyWindow(window);
     glfwTerminate();

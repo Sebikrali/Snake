@@ -1,6 +1,5 @@
 #include "pch.h"
 #include "shader.h"
-#include "utils.h"
 
 GLuint read_shader(const char* path, GLenum type) {
     FILE* file = fopen(path, "r");
@@ -55,8 +54,8 @@ GLuint read_shader(const char* path, GLenum type) {
     return shader;
 }
 
-shader_t create_shader(const char* vs_path, const char* fs_path) {
-    shader_t shader;
+Shader shader_create(const char* vs_path, const char* fs_path) {
+    Shader shader;
     shader.program = 0;
     shader.vs = vs_path;
     shader.fs = fs_path;
@@ -90,7 +89,7 @@ shader_t create_shader(const char* vs_path, const char* fs_path) {
     return shader;
 }
 
-void use_shader(shader_t shader, mat4 viewProj) {
+void shader_use(Shader shader, mat4 viewProj) {
     glUseProgram(shader.program);
 
     int loc = glGetUniformLocation(shader.program, "viewProj");

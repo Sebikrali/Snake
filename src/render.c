@@ -1,10 +1,10 @@
 #include "render.h"
 
-void setup_render(render_t* render, int width, int height) {
+void render_create(Render* render, int width, int height) {
     glm_ortho(0.0f, (float) width, 0.0f, (float) height, -1.0f, 1.0f, render->viewProj);
 }
 
-void setup_debug_render(debug_render_t* render, int width, int height) {
+void debug_render_create(DebugRender* render, int width, int height) {
     render->yaw = -90.0f;
     render->pitch = 0.0f;
     vec3 pos = { 0.0f, 0.0f, 2.0f };
@@ -24,7 +24,7 @@ void setup_debug_render(debug_render_t* render, int width, int height) {
     glm_mat4_mul(proj, view, render->viewProj);
 }
 
-void move_debug_render(debug_render_t* render, vec3 direction, float dt) {
+void debug_render_move(DebugRender* render, vec3 direction, float dt) {
     glm_vec3_scale(direction, dt * 10, direction);
     glm_vec3_add(render->pos, direction, render->pos);
 
@@ -36,7 +36,7 @@ void move_debug_render(debug_render_t* render, vec3 direction, float dt) {
     glm_mat4_mul(render->proj, view, render->viewProj);
 }
 
-void change_view_debug_render(debug_render_t* render, vec2 delta) {
+void debug_render_change_view(DebugRender* render, vec2 delta) {
     float sensitivity = 0.1f;
     render->yaw += delta[0] * sensitivity;
     render->pitch -= delta[1] * sensitivity;

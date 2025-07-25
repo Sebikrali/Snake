@@ -2,13 +2,13 @@
 
 #include "pch.h"
 
+// Shader
 typedef struct {
     GLuint program;
     const char* vs;
     const char* fs;
-} shader_t;
+} Shader;
 
-shader_t create_shader(const char* vs_path, const char* fs_path);
+Shader shader_create(const char* vs_path, const char* fs_path);
 
-void use_shader(shader_t shader, mat4 viewProj);
-
+void shader_use(Shader shader, mat4 viewProj);

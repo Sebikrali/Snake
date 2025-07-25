@@ -5,6 +5,8 @@
 #include <math.h>
 #include <stdbool.h>
 #include <stdint.h>
+#include <time.h>
+#include <stdlib.h>
 
 // Glad
 #include "glad/gl.h"
