@@ -6,7 +6,8 @@
 - Original Snake movement (going off screen, etc.)
 - Score/Highscore tracking
 
-## Libraries
-- glad
-- GLFW
+## Building
+Needed libraries
+- GLFW 3.5
+- Freetype 2.13.3
 

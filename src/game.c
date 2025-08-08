@@ -1,13 +1,11 @@
 #include "game.h"
-#include "cglm/ivec2.h"
-#include <stdio.h>
 
-void game_create(Game* game, int width, int height) {
+void game_create(Game* game) {
     srand(time(NULL));
     glm_ivec2_copy((ivec2){ -1, -1 }, game->last_pos);
+    glm_ivec2_copy((ivec2){ 1, 0 }, game->direction);
     game->finished = false;
-    game->width = width;
-    game->height = height;
+    game->time_since_last_tick = 0.0f;
 
     for (int i = 0; i < GRID_SIZE; i++) {
         for (int j = 0; j < GRID_SIZE; j++) {
@@ -48,6 +46,15 @@ void game_draw(Game* game, Shader shader) {
     model_draw(game->snake.head, shader, game->snake.positions[0]);
     for (size_t i = 0; i < game->snake.num_body_parts; i++) {
         model_draw(game->snake.body[i], shader, game->snake.positions[i+1]);
+    }
+}
+
+void game_update(Game* game, float dt) {
+    if (game->finished) return;
+    game->time_since_last_tick += dt;
+    if (game->time_since_last_tick >= 0.5f) {
+        game_move_snake(game, game->direction);
+        game->time_since_last_tick -= 0.5f;
     }
 }
 

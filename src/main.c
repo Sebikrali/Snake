@@ -15,16 +15,6 @@ static bool g_firstMouse = true;
 static double xPos = 0.0;
 static double yPos = 0.0;
 
-static bool g_key_w_pressed = false;
-static bool g_key_a_pressed = false;
-static bool g_key_s_pressed = false;
-static bool g_key_d_pressed = false;
-
-static bool g_key_w_pressed_first = false;
-static bool g_key_a_pressed_first = false;
-static bool g_key_s_pressed_first = false;
-static bool g_key_d_pressed_first = false;
-
 static bool g_debugCamera = false;
 static DebugRender debug_render;
 
@@ -82,19 +72,6 @@ static void key_callback(GLFWwindow* window, int key, int scancode, int action, 
         glfwSetWindowShouldClose(window, GLFW_TRUE);
     }
 
-    if (key == GLFW_KEY_W && action == GLFW_RELEASE) {
-        g_key_w_pressed = false;
-    } 
-    if (key == GLFW_KEY_A && action == GLFW_RELEASE) {
-        g_key_a_pressed = false;
-    } 
-    if (key == GLFW_KEY_S && action == GLFW_RELEASE) {
-        g_key_s_pressed = false;
-    } 
-    if (key == GLFW_KEY_D && action == GLFW_RELEASE) {
-        g_key_d_pressed = false;
-    } 
-
     if (action != GLFW_PRESS) return; 
     switch (key) {
         case GLFW_KEY_F1:
@@ -104,22 +81,6 @@ static void key_callback(GLFWwindow* window, int key, int scancode, int action, 
             } else {
                 glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
             }
-            break;
-        case GLFW_KEY_W:
-            g_key_w_pressed = true;
-            g_key_w_pressed_first = true;
-            break;
-        case GLFW_KEY_A:
-            g_key_a_pressed = true;
-            g_key_a_pressed_first = true;
-            break;
-        case GLFW_KEY_S:
-            g_key_s_pressed = true;
-            g_key_s_pressed_first = true;
-            break;
-        case GLFW_KEY_D:
-            g_key_d_pressed = true;
-            g_key_d_pressed_first = true;
             break;
     }
 }
@@ -142,36 +103,28 @@ static void cursor_position_callback(GLFWwindow* window, double xpos, double ypo
 void handle_movement(GLFWwindow* window, Game* game) {
     ivec2 direction = {0};
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
-        if (g_key_w_pressed_first) {
-            g_key_w_pressed_first = false;
-            ivec2 up = { 0, 1 }; 
-            glm_ivec2_add(direction, up, direction);
-        }
+        ivec2 up = { 0, 1 }; 
+        glm_ivec2_add(direction, up, direction);
     }
     if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
-        if (g_key_s_pressed_first) {
-            g_key_s_pressed_first = false;
-            ivec2 down = { 0, -1 }; 
-            glm_ivec2_add(direction, down, direction);
-        }
+        ivec2 down = { 0, -1 }; 
+        glm_ivec2_add(direction, down, direction);
     }
     if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
-        if (g_key_a_pressed_first) {
-            g_key_a_pressed_first = false;
-            ivec2 left = { -1, 0 }; 
-            glm_ivec2_add(direction, left, direction);
-        }
+        ivec2 left = { -1, 0 }; 
+        glm_ivec2_add(direction, left, direction);
     }
     if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
-        if (g_key_d_pressed_first) {
-            g_key_d_pressed_first = false;
-            ivec2 right = { 1, 0 }; 
-            glm_ivec2_add(direction, right, direction);
-        }
+        ivec2 right = { 1, 0 }; 
+        glm_ivec2_add(direction, right, direction);
     }
 
     if (direction[0] != 0 || direction[1] != 0) {
-        game_move_snake(game, direction);
+        ivec2 res;
+        glm_ivec2_add(direction, game->direction, res);
+        if (res[0] != 0 || res[1] != 0) {
+            glm_ivec2_copy(direction, game->direction);
+        }
     }
 }
 
@@ -235,7 +188,7 @@ int main() {
     debug_render_create(&debug_render, WIDTH, HEIGHT);
 
     Game game;
-    game_create(&game, WIDTH, HEIGHT);
+    game_create(&game);
 
     Shader shader = shader_create("assets/shader/snake.vert", "assets/shader/snake.frag");
     if (shader.program == 0) {
@@ -246,7 +199,7 @@ int main() {
 
     float t = (float) glfwGetTime();
     float dt = 0.0f;
-    while (!glfwWindowShouldClose(window) && !game.finished) {
+    while (!glfwWindowShouldClose(window)) {
         glClear(GL_COLOR_BUFFER_BIT);
         glfwPollEvents();
 
@@ -263,6 +216,7 @@ int main() {
             shader_use(shader, debug_render.viewProj);
         }
 
+        game_update(&game, dt);
         game_draw(&game, shader);
 
         glfwSwapBuffers(window);
